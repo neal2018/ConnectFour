@@ -6,7 +6,7 @@ import os
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    MODE = 0 # change MODE to 1, to play with AI
+    MODE = 1 # change MODE to 1, to play with AI
     ROW = 5
     COL = 4
     PATH = f"saved_model/{ROW}_{COL}.pkl"
