@@ -6,6 +6,7 @@ class Game:
         self.col = col
         self.state1 = self.initial_state()
         self.state2 = self.initial_state()
+        self.step = 0
 
     def initial_state(self):
         return [[0]*self.col for _ in range(self.row)]
@@ -16,12 +17,20 @@ class Game:
             res = self.check_result(position, 1)
             if res:
                 self.endgame(res)
-                break
+                return res
+            self.step += 1
+            if self.step >= self.row * self.col:
+                self.endgame(("draw","draw"))
+                return ("draw","draw")
             position = self.player2.nextstep(self.state2)
             res = self.check_result(position, 2)
             if res:
                 self.endgame(res)
-                break
+                return res
+            self.step += 1
+            if self.step >= self.row * self.col:
+                self.endgame(("draw","draw"))
+                return ("draw","draw")
 
     def check_result(self, position: int, player_number: int):
         """
@@ -69,4 +78,5 @@ class Game:
         self.player2.endgame(res[1], self.state2)
         self.state1 = self.initial_state()
         self.state2 = self.initial_state()
+        self.step = 0
 
