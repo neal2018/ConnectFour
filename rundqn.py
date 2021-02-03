@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 
 if __name__ == "__main__":
-    MODE = 0  # change MODE to 1, to play with AI
+    MODE = 2  # change MODE to 1, to play with AI
     ROW = 5
     COL = 4
     PATH = f"saved_model/dqn_{ROW}_{COL}.pth"
@@ -38,15 +38,18 @@ if __name__ == "__main__":
         p2 = QPlayer(Q, ROW, COL)
         p2.trying_rate = 0
 
-
     cnt = 0
     win_cnt = 0
     # start training
     game = Game(p2, p1, ROW, COL)
     for i in tqdm(range(100000)):
         res = game.gameplay()
-
-        if i % 20 == 19:
-            p1.update_target_model()
+        cnt += 1
+        if res[1]:
+            win_cnt += 1
+        if i % 5000 == 4999:
+            print(win_cnt/cnt)
+            cnt = 0
+            win_cnt = 0
 
     torch.save(model.state_dict(), PATH)

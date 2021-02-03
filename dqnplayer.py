@@ -5,6 +5,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from constants import (DRAW,
+                       LOSE,
+                       WIN)
 
 
 class DQN(nn.Module):
@@ -48,6 +51,8 @@ class DQNPlayer(Player):
 
         self.loss_fn = F.mse_loss
         self.optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+        self.memory = {}
+        self.batch_size = 32
 
     def nextstep(self, state):
         state = self.encode(state)
@@ -61,10 +66,10 @@ class DQNPlayer(Player):
 
     def endgame(self, result, state):
         state = self.encode(state)
-        if result==True:
+        if result == WIN:
             self.updateQ(self.last_state, state,
                          self.last_step, 50, is_end=True)
-        elif result=="draw":
+        elif result == DRAW:
             self.updateQ(self.last_state, state,
                          self.last_step, 10, is_end=True)
         else:
@@ -96,9 +101,61 @@ class DQNPlayer(Player):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        self.update_target_model()
 
     def update_target_model(self):
         self.target_model.load_state_dict(self.model.state_dict())
 
     def encode(self, state):
         return torch.Tensor(state).unsqueeze(0).unsqueeze(0)
+
+
+if __name__ == "__main__":
+    from game import Game
+    from qplayer import QPlayer
+    import os
+    from tqdm import tqdm
+    MODE = 0  # change MODE to 1, to play with AI
+    ROW = 5
+    COL = 4
+    PATH = f"saved_model/dqn_{ROW}_{COL}.pth"
+
+    model = DQN(ROW, COL)
+    target_model = DQN(ROW, COL)
+
+    if os.path.exists(PATH):
+        model.load_state_dict(torch.load(PATH))
+        target_model.load_state_dict(torch.load(PATH))
+
+    p1 = DQNPlayer(model, target_model, ROW, COL)
+
+    if MODE == 0:
+        # self play
+        p2 = DQNPlayer(model, target_model, ROW, COL)
+    elif MODE == 1:
+        # man play
+        p2 = Player(ROW, COL)
+        p1.trying_rate = 0
+    elif MODE == 2:
+        # vs QPlayer
+        QPATH = f"saved_model/{ROW}_{COL}.pkl"
+        with open(QPATH, 'rb') as f:
+            Q = pickle.load(f)
+        p2 = QPlayer(Q, ROW, COL)
+        p2.trying_rate = 0
+
+    cnt = 0
+    win_cnt = 0
+    # start training
+    game = Game(p2, p1, ROW, COL)
+    for i in tqdm(range(100000)):
+        res = game.gameplay()
+        cnt += 1
+        if res[1]:
+            win_cnt += 1
+        if i % 5000 == 4999:
+            print(win_cnt/cnt)
+            cnt = 0
+            win_cnt = 0
+
+    torch.save(model.state_dict(), PATH)
