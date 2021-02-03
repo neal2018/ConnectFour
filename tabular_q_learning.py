@@ -49,7 +49,7 @@ class QPlayer(Player):
         else:
             return np.argmax(self.Q[state])
 
-    def updateQ(self, last_state: np.ndarray, cur_state: np.ndarray, last_step: int, reward: float):
+    def updateQ(self, last_state: int, cur_state: int, last_step: int, reward: float):
         if last_state not in self.Q:
             self.Q[last_state] = [0]*self.col
         if cur_state not in self.Q:
@@ -70,10 +70,10 @@ if __name__ == "__main__":
     from tqdm import tqdm
     from game import Game
 
-    MODE = 0  # change MODE to 1, to play with AI
+    MODE = 1  # change MODE to 1, to play with AI
     ROW = 5
     COL = 4
-    PATH = f"saved_model/{ROW}_{COL}.pkl"
+    PATH = f"saved_model/tabular_q_{ROW}_{COL}.pkl"
 
     # loading saved Q-matrix
     if not os.path.exists(PATH):

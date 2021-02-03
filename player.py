@@ -14,7 +14,7 @@ class Player:
             print(row)
         step = int(input("enter next step column\n"))
         while not (0 <= step < self.col):
-            step = int(input("enter next step column\n"))
+            step = int(input("invalid move, enter next step column again\n"))
         return step
 
     def endgame(self, result: int, state: np.ndarray):
